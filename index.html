@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生日快乐</title>
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        /* 页面背景：渐变暖色调，营造温馨氛围 */
+        body {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: "微软雅黑", sans-serif;
+            padding: 20px;
+        }
+        /* 标题样式：加粗、渐变文字、放大 */
+        .title {
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 30px;
+            animation: flash 2s infinite alternate; /* 文字闪烁动画 */
+        }
+        /* 祝福文案：居中、柔和字体 */
+        .blessing {
+            font-size: 24px;
+            color: #333;
+            line-height: 1.8;
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+        /* 蛋糕图片：居中、添加旋转动画 */
+        .cake {
+            width: 300px;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255, 65, 108, 0.3);
+            animation: rotate 10s linear infinite; /* 缓慢旋转 */
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        /* 底部小提示 */
+        .tip {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        /* 按钮组：包裹三个按钮，保持间距 */
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        /* 烟花按钮样式 */
+        .firework-btn {
+            padding: 15px 40px;
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4);
+            transition: all 0.3s ease;
+        }
+        .firework-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 65, 108, 0.6);
+        }
+        /* 动图按钮样式（与烟花按钮一致） */
+        .gif-btn {
+            padding: 15px 40px;
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4);
+            transition: all 0.3s ease;
+        }
+        .gif-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 65, 108, 0.6);
+        }
+        /* 祝福语按钮样式（与其他按钮统一） */
+        .wish-btn {
+            padding: 15px 40px;
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4);
+            transition: all 0.3s ease;
+        }
+        .wish-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 65, 108, 0.6);
+        }
+        /* 动画定义：文字闪烁 */
+        @keyframes flash {
+            from { opacity: 0.8; transform: scale(1); }
+            to { opacity: 1; transform: scale(1.05); }
+        }
+        /* 动画定义：蛋糕旋转 */
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        /* 弹出祝福框样式 */
+        .modal {
+            display: none; /* 默认隐藏 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 65, 108, 0.5);
+        }
+        .modal-text {
+            font-size: 28px;
+            color: #ff416c;
+            margin-bottom: 20px;
+        }
+        .close-btn {
+            padding: 10px 30px;
+            background: #ff4b2b;
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        /* 隐藏音频控件默认样式 */
+        audio {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 音频元素：生日祝福歌 -->
+    <audio id="birthdayMusic" autoplay loop>
+        <!-- 内置2个不同源的生日歌，确保兼容性（优先加载第一个） -->
+        <source src="audio/Hippop_XQS - 生日快乐-钢琴版.mp3" type="audio/mpeg">
+      
+        您的浏览器不支持音频播放
+    </audio>
+
+    <!-- 标题 -->
+    <h1 class="title">coco生日快乐呀！</h1>
+    <!-- 祝福文案 -->
+    <div class="blessing">
+        愿你眼里有光，心里有暖<br>
+        岁岁皆欢愉，年年皆胜意<br>
+        平安喜乐，万事顺意✨
+    </div>
+    <!-- 蛋糕图片（替换为可用的蛋糕图片） -->
+    <img src="img/cake.png" alt="生日蛋糕" class="cake" onclick="showModal()">
+    <!-- 底部小提示 -->
+    <div class="tip">点击蛋糕，解锁专属祝福～</div>
+    <!-- 按钮组：包含烟花、动图、祝福语三个按钮 -->
+    <div class="btn-group">
+        <button class="firework-btn" onclick="window.location.href='fireworks.html'">
+            🎆 点击看烟花 🎆
+        </button>
+        <button class="gif-btn" onclick="window.location.href='gifs.html'">
+            🎈 一些可爱表情包 🎈
+        </button>
+        <button class="wish-btn" onclick="window.location.href='wishes.html'">
+            💌 猫猫版文案 💌
+        </button>
+    </div>
+    <!-- 弹出祝福框 -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-text">
+                Dear詹詹，<br>
+                一个小小奶茶蛋糕，祝你天天开心，永远健康！🎂<br>
+                藏不住的可爱、挡不住的热情，<br>
+                你带来的温暖与活力，我们全都稳稳接住啦！<br>
+                永远喜欢奶茶脏脏包！🧋
+            </div>
+            <button class="close-btn" onclick="closeModal()">确定</button>
+        </div>
+    </div>
+
+    <!-- 动态效果JS -->
+    <script>
+        const music = document.getElementById('birthdayMusic');
+
+        // 页面加载完成后尝试自动播放（兼容浏览器策略）
+        window.addEventListener('load', function() {
+            // 主动触发播放（部分浏览器需要用户交互后才能播放，这里做兼容处理）
+            document.body.addEventListener('click', initMusic, { once: true });
+        });
+
+        // 初始化音乐播放（兼容自动播放限制）
+        function initMusic() {
+            music.play().catch(err => {
+                console.log('自动播放需用户交互，点击页面任意位置即可播放：', err);
+            });
+        }
+
+        // 显示弹出框
+        function showModal() {
+            document.getElementById("modal").style.display = "flex";
+            // 点击蛋糕时确保音乐播放
+            music.play();
+        }
+
+        // 关闭弹出框
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生日烟花秀</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #0a0a1a; /* 深邃夜空，更显烟花明亮 */
+            height: 100vh;
+            position: relative;
+            font-family: "微软雅黑", sans-serif;
+        }
+        #fireworks-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .birthday-text {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 42px;
+            font-weight: bold;
+            text-shadow: 0 0 15px #ff6b9d, 0 0 30px #ff4b2b, 0 0 45px #ffd700;
+            z-index: 10;
+            text-align: center;
+            padding: 0 20px;
+            animation: glow 2s infinite alternate;
+        }
+        .subtitle {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffd1dc;
+            font-size: 20px;
+            text-shadow: 0 0 10px #ff6b9d;
+            z-index: 10;
+            text-align: center;
+            padding: 0 20px;
+        }
+        .back-btn {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 14px 36px;
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            border: none;
+            color: white;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 0 20px rgba(255, 65, 108, 0.6);
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover {
+            transform: translateX(-50%) scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 65, 108, 0.9);
+        }
+        /* 文字发光动画 */
+        @keyframes glow {
+            from { text-shadow: 0 0 15px #ff6b9d, 0 0 30px #ff4b2b, 0 0 45px #ffd700; }
+            to { text-shadow: 0 0 25px #ff6b9d, 0 0 40px #ff4b2b, 0 0 60px #ffd700, 0 0 75px #ffd700; }
+        }
+        /* 隐藏音频控件默认样式 */
+        audio {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 音频元素：生日祝福歌，自动播放+循环（与其他页面保持一致） -->
+    <audio id="birthdayMusic" autoplay loop>
+        <source src="audio/一轩昂 - 打上花火 钢琴.mp3" type="audio/mpeg">
+        您的浏览器不支持音频播放
+    </audio>
+
+    <div class="birthday-text">coco生日快乐！</div>
+    <div class="subtitle">烟花很美，你看着烟花微笑时的微笑更美。</div>
+    <canvas id="fireworks-canvas"></canvas>
+    <button class="back-btn" onclick="window.location.href='index.html'">返回祝福页面</button>
+
+    <script>
+        // 音乐播放兼容逻辑（与其他页面保持一致）
+        const music = document.getElementById('birthdayMusic');
+
+        // 兼容浏览器自动播放限制：用户点击页面任意位置触发播放
+        window.addEventListener('load', function() {
+            document.body.addEventListener('click', initMusic, { once: true });
+        });
+
+        function initMusic() {
+            music.play().catch(err => console.log('点击页面任意位置播放音乐：', err));
+        }
+
+        // 原有烟花动画代码（保持不变）
+        const canvas = document.getElementById('fireworks-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // 调整Canvas尺寸
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // 性能与效果平衡：合理限制粒子数量（爆炸速度快，适当增加上限）
+        const MAX_PARTICLES = 4000;
+        const MAX_SPARKLES = 1500;
+
+        // 核心数组
+        let fireworks = [];
+        let particles = [];
+        let sparkles = [];
+
+        // 随机数工具
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        // 经典烟花色彩库（柔和渐变，贴近真实烟花）
+        const FIREWORK_COLORS = [
+            ['#ff5e7d', '#ff8a5b'], // 粉橙
+            ['#ffd166', '#ffab00'], // 金黄
+            ['#06d6a0', '#118ab2'], // 青绿
+            ['#d9376e', '#9333ea'], // 紫粉
+            ['#7c3aed', '#c026d3'], // 深紫
+            ['#ff0080', '#ff6392'], // 桃红
+            ['#00c9ff', '#92fe9d'], // 浅青
+            ['#ff7e5f', '#feb47b'], // 暖橙
+        ];
+
+        // 生成柔和的渐变颜色
+        function getSoftGradientColor(pair) {
+            const [c1, c2] = pair;
+            const r = Math.floor(random(parseInt(c1.slice(1,3),16), parseInt(c2.slice(1,3),16)));
+            const g = Math.floor(random(parseInt(c1.slice(3,5),16), parseInt(c2.slice(3,5),16)));
+            const b = Math.floor(random(parseInt(c1.slice(5,7),16), parseInt(c2.slice(5,7),16)));
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // 烟花类（经典设计+快速爆炸）
+        class Firework {
+            constructor() {
+                // 发射点：中间底部
+                this.x = canvas.width / 2;
+                this.y = canvas.height - 80; // 略微上移，避免贴近底部
+                this.targetY = random(canvas.height * 0.25, canvas.height * 0.4); // 爆炸高度（更自然）
+                
+                // 左右小角度偏移（0-12度），保持对称
+                const angleRange = Math.PI / 15;
+                const randomAngle = random(-angleRange, angleRange);
+                this.targetX = this.x + Math.tan(randomAngle) * (canvas.height - this.targetY);
+                
+                // 上升速度：匀速平滑
+                const distance = Math.sqrt(Math.pow(this.targetX - this.x, 2) + Math.pow(this.targetY - this.y, 2));
+                this.speed = 6; // 固定上升速度，更稳定
+                this.dx = (this.targetX - this.x) / (distance / this.speed);
+                this.dy = (this.targetY - this.y) / (distance / this.speed);
+                
+                // 外观：简洁圆润
+                this.colorPair = FIREWORK_COLORS[Math.floor(random(0, FIREWORK_COLORS.length))];
+                this.mainColor = getSoftGradientColor(this.colorPair);
+                this.size = 3;
+                this.brightness = 1;
+                this.exploded = false;
+                this.trail = [];
+                this.trailLength = 6; // 极淡轨迹，仅作引导
+            }
+
+            update() {
+                if (!this.exploded) {
+                    // 记录轨迹（极短，避免明显）
+                    this.trail.push({x: this.x, y: this.y});
+                    if (this.trail.length > this.trailLength) this.trail.shift();
+
+                    // 移动到目标位置
+                    this.x += this.dx;
+                    this.y += this.dy;
+                    this.brightness = Math.min(1.5, this.brightness + 0.01);
+
+                    // 到达目标位置爆炸（触发更灵敏，避免延迟）
+                    const distToTarget = Math.sqrt(Math.pow(this.targetX - this.x, 2) + Math.pow(this.targetY - this.y, 2));
+                    if (distToTarget < 12) {
+                        this.explode();
+                        this.exploded = true;
+                    }
+                }
+            }
+
+            // 核心修改：快速爆炸效果（提高粒子初始速度）
+            explode() {
+                const particleAvailable = MAX_PARTICLES - particles.length;
+                const sparkAvailable = MAX_SPARKLES - sparkles.length;
+
+                // 1. 主爆炸粒子（快速扩散，速度大幅提升）
+                const mainCount = Math.min(350, particleAvailable * 0.7); // 适当增加粒子数，配合快速扩散
+                for (let i = 0; i < mainCount; i++) {
+                    const angle = random(0, Math.PI * 2);
+                    const speed = random(6, 12); // 原3-7 → 6-12，速度翻倍
+                    const color = getSoftGradientColor(this.colorPair);
+                    const size = random(1.5, 2.8); // 略微缩小，避免快速扩散时显得杂乱
+                    particles.push(new Particle(this.x, this.y, color, size, angle, speed));
+                }
+
+                // 2. 次级粒子（快速跟进，缩短延迟）
+                setTimeout(() => {
+                    const subCount = Math.min(200, particleAvailable * 0.4);
+                    for (let i = 0; i < subCount; i++) {
+                        const angle = random(0, Math.PI * 2);
+                        const speed = random(4, 9); // 原2-5 → 4-9，速度翻倍
+                        const color = getSoftGradientColor(this.colorPair);
+                        const size = random(1, 1.8);
+                        particles.push(new Particle(this.x, this.y, color, size, angle, speed));
+                    }
+                }, 60); // 原100ms → 60ms，次级爆炸更快跟进
+
+                // 3. 火花粒子（高速喷射，增强冲击感）
+                const sparkCount = Math.min(120, sparkAvailable * 0.6);
+                for (let i = 0; i < sparkCount; i++) {
+                    const angle = random(0, Math.PI * 2);
+                    const speed = random(10, 18); // 原5-10 → 10-18，速度翻倍
+                    const color = getSoftGradientColor(this.colorPair);
+                    sparkles.push(new Sparkle(this.x, this.y, color, angle, speed));
+                }
+            }
+
+            draw() {
+                if (!this.exploded) {
+                    // 绘制极淡轨迹
+                    for (let i = 0; i < this.trail.length; i++) {
+                        const p = this.trail[i];
+                        const opacity = (i / this.trail.length) * 0.2; // 极低透明度
+                        ctx.save();
+                        ctx.globalAlpha = opacity;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, 1, 0, Math.PI * 2);
+                        ctx.fillStyle = this.mainColor;
+                        ctx.fill();
+                        ctx.restore();
+                    }
+
+                    // 绘制烟花本体（圆润发光）
+                    ctx.save();
+                    const gradient = ctx.createRadialGradient(
+                        this.x, this.y, 0,
+                        this.x, this.y, this.size * 2
+                    );
+                    gradient.addColorStop(0, 'white');
+                    gradient.addColorStop(0.6, this.mainColor);
+                    gradient.addColorStop(1, 'transparent');
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+        }
+
+        // 粒子类（适配快速爆炸，优化物理参数）
+        class Particle {
+            constructor(x, y, color, size, angle, speed) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.size = size;
+                this.dx = Math.cos(angle) * speed;
+                this.dy = Math.sin(angle) * speed;
+                
+                // 物理参数优化：适配快速爆炸，避免过早下坠
+                this.gravity = 0.03; // 原0.05 → 0.03，减小重力，让粒子多扩散一段距离
+                this.resistance = 0.97; // 原0.98 → 0.97，轻微增加阻力，控制扩散范围
+                this.alpha = 1.5; // 原1.2 → 1.5，初始更亮，配合快速爆炸的视觉冲击
+                this.fade = random(0.003, 0.005); // 原0.002-0.004 → 0.003-0.005，衰减略快，避免残留杂乱
+                this.maxLifetime = 250; // 原300 → 250，生命周期略短，保持画面整洁
+                this.lifetime = 0;
+            }
+
+            update() {
+                this.lifetime++;
+                if (this.lifetime >= this.maxLifetime) {
+                    this.alpha = 0;
+                    return;
+                }
+
+                // 物理运动：快速扩散+缓慢下坠
+                this.dx *= this.resistance;
+                this.dy *= this.resistance;
+                this.dy += this.gravity;
+                this.x += this.dx;
+                this.y += this.dy;
+                this.alpha -= this.fade;
+
+                // 边界检测：超出画布消失
+                if (this.x < 0 || this.x > canvas.width || this.y > canvas.height + 30) {
+                    this.alpha = 0;
+                }
+            }
+
+            draw() {
+                if (this.alpha <= 0) return;
+
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.translate(this.x, this.y);
+
+                // 经典圆形粒子，带柔和光晕
+                const gradient = ctx.createRadialGradient(
+                    0, 0, 0,
+                    0, 0, this.size * 1.2
+                );
+                gradient.addColorStop(0, 'white');
+                gradient.addColorStop(0.7, this.color);
+                gradient.addColorStop(1, 'transparent');
+
+                ctx.beginPath();
+                ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // 火花粒子类（高速喷射，增强冲击感）
+        class Sparkle {
+            constructor(x, y, color, angle, speed) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.dx = Math.cos(angle) * speed;
+                this.dy = Math.sin(angle) * speed;
+                
+                // 物理参数优化：适配高速火花
+                this.gravity = 0.02; // 原0.03 → 0.02，减小重力，让火花飞得更远
+                this.resistance = 0.96; // 原0.97 → 0.96，适当增加阻力，控制轨迹
+                this.alpha = 1.2;
+                this.fade = random(0.004, 0.006); // 衰减略快，避免拖影过长
+                this.size = random(0.8, 1.5); // 原1-1.8 → 0.8-1.5，更细小，配合高速喷射
+                this.maxLifetime = 180; // 原200 → 180，生命周期略短
+                this.lifetime = 0;
+                this.trail = [];
+                this.trailLength = 3; // 原4 → 3，缩短尾迹，避免高速移动时拖影杂乱
+            }
+
+            update() {
+                this.lifetime++;
+                if (this.lifetime >= this.maxLifetime) {
+                    this.alpha = 0;
+                    return;
+                }
+
+                // 记录尾迹（更短，更简洁）
+                this.trail.push({x: this.x, y: this.y});
+                if (this.trail.length > this.trailLength) this.trail.shift();
+
+                // 运动更新：高速喷射
+                this.dx *= this.resistance;
+                this.dy *= this.resistance;
+                this.dy += this.gravity;
+                this.x += this.dx;
+                this.y += this.dy;
+                this.alpha -= this.fade;
+
+                // 边界检测
+                if (this.x < 0 || this.x > canvas.width || this.y > canvas.height + 30) {
+                    this.alpha = 0;
+                }
+            }
+
+            draw() {
+                if (this.alpha <= 0) return;
+
+                // 绘制简洁尾迹
+                for (let i = 0; i < this.trail.length; i++) {
+                    const p = this.trail[i];
+                    const opacity = this.alpha * (i / this.trail.length) * 0.4;
+                    const size = this.size * (i / this.trail.length) * 0.6;
+                    
+                    ctx.save();
+                    ctx.globalAlpha = opacity;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // 绘制火花本体
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // 生成烟花：频率略微提高，配合快速爆炸的节奏感
+        function spawnFirework() {
+            const total = particles.length + sparkles.length;
+            if (total < (MAX_PARTICLES + MAX_SPARKLES) * 0.4) {
+                if (Math.random() < 0.15) { // 原0.2 → 0.23，略微提高生成频率
+                    fireworks.push(new Firework());
+                }
+            }
+        }
+
+        // 动画循环：保持流畅，适配快速爆炸
+        function animate() {
+            // 半透明覆盖，营造拖影效果（透明度略高，配合快速移动）
+            ctx.fillStyle = 'rgba(10, 10, 26, 0.12)'; // 原0.1 → 0.12，拖影更淡，避免画面模糊
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            spawnFirework();
+
+            // 绘制顺序：火花→粒子→烟花
+            for (let i = sparkles.length - 1; i >= 0; i--) {
+                sparkles[i].update();
+                sparkles[i].draw();
+                if (sparkles[i].alpha <= 0) sparkles.splice(i, 1);
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].alpha <= 0) particles.splice(i, 1);
+            }
+
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                fireworks[i].update();
+                fireworks[i].draw();
+                if (fireworks[i].exploded && fireworks[i].trail.length === 0) fireworks.splice(i, 1);
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // 初始生成10个烟花，间隔缩短，增强节奏
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                fireworks.push(new Firework());
+            }, i * 250); 
+        }
+
+        // 启动动画
+        animate();
+    </script>
+</body>
+</html>

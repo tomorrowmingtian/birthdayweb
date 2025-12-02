@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>土味文案 💌</title>
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        /* 页面背景：延续主页面暖色调渐变，保持风格统一 */
+        body {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            min-height: 100vh;
+            font-family: "微软雅黑", sans-serif;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* 页面标题：与主页面风格一致，渐变文字+动画 */
+        .page-title {
+            font-size: clamp(28px, 5vw, 42px);
+            font-weight: bold;
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: clamp(30px, 4vw, 50px);
+            text-align: center;
+            animation: flash 2s infinite alternate;
+            padding: 0 20px;
+        }
+        /* 文案容器：居中显示，限制最大宽度 */
+        .wish-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(25px, 3vw, 35px);
+            margin-bottom: clamp(40px, 5vw, 60px);
+        }
+        /* 文案卡片：圆角+阴影，温馨风格 */
+        .wish-card {
+            background: white;
+            padding: clamp(20px, 3vw, 30px);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(255, 65, 108, 0.15);
+            transition: all 0.3s ease;
+        }
+        .wish-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(255, 65, 108, 0.25);
+        }
+        /* 文案内容：柔和字体+合适行高 */
+        .wish-text {
+            font-size: clamp(18px, 2.5vw, 22px);
+            color: #333;
+            line-height: 1.8;
+            text-align: center;
+        }
+        /* 文案中的强调色：与主页面渐变色呼应 */
+        .wish-text span {
+            color: #ff416c;
+            font-weight: 500;
+        }
+        /* 返回按钮：与主页面按钮样式完全一致 */
+        .back-btn {
+            padding: 15px 40px;
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4);
+            transition: all 0.3s ease;
+            margin-top: auto;
+        }
+        .back-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 65, 108, 0.6);
+        }
+        /* 文字闪烁动画（复用主页面动画） */
+        @keyframes flash {
+            from { opacity: 0.8; transform: scale(1); }
+            to { opacity: 1; transform: scale(1.05); }
+        }
+        /* 响应式适配：小屏优化 */
+        @media (max-width: 576px) {
+            .wish-card {
+                padding: 18px;
+            }
+            .wish-text {
+                font-size: 17px;
+            }
+            .back-btn {
+                padding: 12px 35px;
+                font-size: 18px;
+            }
+        }
+                /* 隐藏音频控件默认样式 */
+        audio {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+   <!-- 音频元素：生日祝福歌 -->
+    <audio id="birthdayMusic" autoplay loop>
+        <!-- 内置2个不同源的生日歌，确保兼容性（优先加载第一个） -->
+        <source src="audio/Hippop_XQS - 生日快乐-钢琴版.mp3" type="audio/mpeg">
+      
+        您的浏览器不支持音频播放
+    </audio>
+
+    <!-- 页面标题 -->
+    <h1 class="page-title">一些文案 💌</h1>
+
+    <!-- 文案容器：包含5段不同风格的祝福 -->
+    <div class="wish-container">
+        <div class="wish-card">
+            <p class="wish-text">
+              不怕渣女搞暧昧，就怕coco十八岁，<br>
+              识大体，懂进退，撒娇卖萌全都会，<br>
+              成熟稳重有韵味，让人迷恋又沉醉
+            </p>
+        </div>
+        <div class="wish-card">
+            <p class="wish-text">
+我刚刚喝水闻到一股焦味，但是家里烧水的电器都没有开，我以为是线的问题吧线检查了一遍最后我突然发现，原来是我的心在为你燃烧。</p>
+        </div>
+        <div class="wish-card">
+            <p class="wish-text">coco上辈子一定是碳酸饮料吧，不然为什么我一看到你就开心的冒泡，这感觉就像沸腾的热水，让我的心都滚烫，脸也发烧。</p>
+        </div>
+        <div class="wish-card">
+            <p class="wish-text">世界上有五种尺，直尺，卷尺，三角尺，游标卡尺，还有I love you very much❤❤❤</p>
+        </div>
+        <div class="wish-card">
+            <p class="wish-text">瑶瑶你能不能教我煮汤圆啊 我太笨了 做什么都会露馅 连喜欢你也是…</p>
+        </div>
+    </div>
+
+    <script>
+      const music = document.getElementById('birthdayMusic');
+
+        // 页面加载完成后尝试自动播放（兼容浏览器策略）
+        window.addEventListener('load', function() {
+            // 主动触发播放（部分浏览器需要用户交互后才能播放，这里做兼容处理）
+            document.body.addEventListener('click', initMusic, { once: true });
+        });
+
+        // 初始化音乐播放（兼容自动播放限制）
+        function initMusic() {
+            music.play().catch(err => {
+                console.log('自动播放需用户交互，点击页面任意位置即可播放：', err);
+            });
+        }
+    </script>
+
+    <!-- 返回主页面按钮 -->
+    <button class="back-btn" onclick="window.location.href='index.html'">
+        🔙 返回祝福主页
+    </button>
+</body>
+</html>
